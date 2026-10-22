@@ -1,10 +1,20 @@
 name: Release Foundry module
+
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing or new release tag (e.g. v0.1.0)'
+        required: true
+        default: 'v0.1.0'
+        type: string
+
 permissions:
   contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -13,7 +23,7 @@ jobs:
       - name: Validate and package
         env:
           REPOSITORY: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
         run: |
           python3 - <<'PY'
           import json, os, pathlib, re, zipfile
@@ -36,7 +46,13 @@ jobs:
               for f in pathlib.Path('lang').rglob('*'):
                   if f.is_file(): z.write(f, f.as_posix())
           PY
-      - name: Publish GitHub Release
+      - name: Publish release assets
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/module.json dist/sheet-backgrounds-modern.zip --title "$GITHUB_REF_NAME" --generate-notes
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/module.json dist/sheet-backgrounds-modern.zip --clobber
+          else
+            gh release create "$TAG" dist/module.json dist/sheet-backgrounds-modern.zip --title "$TAG" --generate-notes
+          fi
