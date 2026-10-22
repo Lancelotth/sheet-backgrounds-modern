@@ -1,0 +1,12 @@
+{
+  "sheet-backgrounds-modern": {
+    "button": "Cambiar fondo (clic derecho para restablecer)",
+    "changed": "Fondo del personaje actualizado.",
+    "cleared": "Fondo del personaje restablecido.",
+    "error": "No se pudo guardar el fondo del personaje.",
+    "allowPlayers": {
+      "name": "Permitir a jugadores modificar sus fondos",
+      "hint": "Los jugadores propietarios pueden seleccionar o restablecer el fondo de su hoja. El GM siempre puede hacerlo."
+    }
+  }
+}

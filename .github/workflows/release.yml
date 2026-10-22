@@ -1,0 +1,42 @@
+name: Release Foundry module
+on:
+  push:
+    tags:
+      - 'v*'
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate and package
+        env:
+          REPOSITORY: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re, zipfile
+          repo, tag = os.environ['REPOSITORY'], os.environ['TAG']
+          if not re.fullmatch(r'v\d+\.\d+\.\d+', tag):
+              raise SystemExit('Tag must be vMAJOR.MINOR.PATCH')
+          name = 'sheet-backgrounds-modern'
+          m = json.loads(pathlib.Path('module.json').read_text())
+          m['version'] = tag[1:]
+          m['url'] = f'https://github.com/{repo}'
+          m['manifest'] = f'https://github.com/{repo}/releases/latest/download/module.json'
+          m['download'] = f'https://github.com/{repo}/releases/download/{tag}/{name}.zip'
+          out = pathlib.Path('dist')
+          out.mkdir(exist_ok=True)
+          (out / 'module.json').write_text(json.dumps(m, ensure_ascii=False, indent=2)+'\n')
+          with zipfile.ZipFile(out / f'{name}.zip', 'w', zipfile.ZIP_DEFLATED) as z:
+              z.write(out / 'module.json', 'module.json')
+              for f in pathlib.Path('scripts').rglob('*'):
+                  if f.is_file(): z.write(f, f.as_posix())
+              for f in pathlib.Path('lang').rglob('*'):
+                  if f.is_file(): z.write(f, f.as_posix())
+          PY
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/module.json dist/sheet-backgrounds-modern.zip --title "$GITHUB_REF_NAME" --generate-notes
