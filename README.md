@@ -1,40 +1,40 @@
 # Sheet Backgrounds Modern
 
-Fondos personalizados para las hojas modernas de personajes **D&D 5e** en **Foundry VTT v13**.
+Custom background images for modern **D&D 5e character sheets** in **Foundry VTT v13**.
 
-> **Desarrollado con ayuda de IA.** Este módulo fue generado con asistencia de ChatGPT para resolver una necesidad práctica; no fue programado manualmente por el propietario del repositorio. Es un proyecto comunitario no oficial.
+> **AI-assisted project:** The code was created with the assistance of ChatGPT to address a practical need. The repository owner did not personally write the module's code.
 
-## Funcionalidades
+## Features
 
-- Fondo independiente por personaje.
-- Selector de imágenes desde la hoja de personaje.
-- Clic derecho en el botón de imagen para restablecer el fondo.
-- Configuración de permisos para jugadores.
-- Interfaz en español e inglés.
-- Lectura de fondos previamente guardados por el módulo original.
+- Individual background images for each character.
+- Built-in image picker on modern character sheets.
+- Right-click the image button to reset the background.
+- Configurable player permissions.
+- English user interface.
+- Best-effort support for backgrounds previously saved by the original module.
 
-## Compatibilidad
+## Compatibility
 
-Pensado para **Foundry VTT 13.351**, **D&D 5e 5.3.3** y la hoja moderna `CharacterActorSheet`.
+Designed for **Foundry VTT 13.351**, **D&D 5e 5.3.3**, and the modern `CharacterActorSheet`.
 
-**Estado:** experimental. Los prototipos se probaron en consola, pero el módulo instalable todavía requiere validación completa.
+**Status: experimental.** The features were tested individually in the browser console, but the packaged module still needs end-to-end testing.
 
-## Instalación
+## Installation
 
-Después de publicar una versión en [Releases](https://github.com/Lancelotth/sheet-backgrounds-modern/releases), usa esta URL en **Foundry → Add-on Modules → Install Module → Manifest URL**:
+Once a [release](https://github.com/Lancelotth/sheet-backgrounds-modern/releases) is published, paste this URL into **Foundry Setup → Add-on Modules → Install Module → Manifest URL**:
 
 ```text
 https://github.com/Lancelotth/sheet-backgrounds-modern/releases/latest/download/module.json
 ```
 
-Desactiva el módulo original antes de activar este para evitar interferencias.
+Disable the original module before enabling this one to avoid conflicts.
 
-## Créditos
+## Credits
 
-Inspirado por **[Background Image Customization](https://github.com/kckoch/foundryvtt-change-background-image)**, creado por **kckoch**. Gracias a su autor por el proyecto original. Esta adaptación es una implementación independiente para hojas modernas y no está afiliada al autor original.
+Inspired by **[Background Image Customization](https://github.com/kckoch/foundryvtt-change-background-image)** by **kckoch**. Many thanks to the original author. This is an independent implementation for modern character sheets, not an official update or an affiliated project.
 
-Código generado con asistencia de **ChatGPT (OpenAI)** y probado por el responsable del repositorio.
+Developed with **ChatGPT (OpenAI)** assistance and tested by the repository maintainer.
 
-## Licencia
+## License
 
-[MIT](LICENSE). Se distribuye sin garantías.
+[MIT](LICENSE). Provided as-is, without warranty.
