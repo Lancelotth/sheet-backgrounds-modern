@@ -18,7 +18,8 @@ function supported(app) {
 function pathFor(actor) {
   const own = actor.getFlag(ID, FLAG);
   if (typeof own === "string") return own;
-  const old = actor.getFlag(OLD_ID, OLD_FLAG);
+  // Read stored legacy data directly: getFlag rejects inactive module namespaces in V13.
+  const old = actor.flags?.[OLD_ID]?.[OLD_FLAG];
   return old?.[actor.id]?.path ?? "";
 }
 
