@@ -1,41 +1,41 @@
 /**
- * Independent implementation for the ApplicationV2 D&D 5e character sheet.
- * Legacy flag data is read for migration without copying code from the old module.
+ * Sheet Backgrounds Modern
+ * Independent adaptation for D&D 5e's ApplicationV2 character sheet.
+ * Inspired by Background Image Customization by kckoch.
  */
 const ID = "sheet-backgrounds-modern";
-const FLAG = "path";
 const OLD_ID = "background-images";
-const OLD_FLAG = "background-image";
-const SHEET_CLASS = "CharacterActorSheet";
+const STYLE_KEYS = ["background-image", "background-size", "background-position", "background-repeat"];
 
-function supported(app) {
-  return game.system.id === "dnd5e" &&
-    app?.document?.documentName === "Actor" &&
-    app.document.type === "character" &&
-    app.constructor?.name === SHEET_CLASS;
+function isCharacterSheet(app) {
+  return game.system.id === "dnd5e"
+    && app?.document?.documentName === "Actor"
+    && app.document.type === "character"
+    && app.constructor?.name === "CharacterActorSheet";
 }
 
-function pathFor(actor) {
-  const own = actor.getFlag(ID, FLAG);
+function currentPath(actor) {
+  // Reading raw actor flags works even when the original module is disabled.
+  // An explicit empty string means "reset" and overrides any legacy background.
+  const own = actor.flags?.[ID]?.path;
   if (typeof own === "string") return own;
-  // Read stored legacy data directly: getFlag rejects inactive module namespaces in V13.
-  const old = actor.flags?.[OLD_ID]?.[OLD_FLAG];
-  return old?.[actor.id]?.path ?? "";
+  const legacy = actor.flags?.[OLD_ID]?.["background-image"];
+  return legacy?.[actor.id]?.path ?? "";
 }
 
-function canChange(actor) {
+function mayEdit(actor) {
   return actor.isOwner && (game.user.isGM || game.settings.get(ID, "allowPlayers"));
 }
 
 function applyBackground(app) {
   const content = app.element?.querySelector(".window-content");
   if (!content) return;
-  const path = pathFor(app.document);
+  const path = currentPath(app.document);
   if (!path) {
-    for (const key of ["background-image", "background-size", "background-position", "background-repeat"])
-      content.style.removeProperty(key);
+    for (const key of STYLE_KEYS) content.style.removeProperty(key);
     return;
   }
+  // FilePicker supplies relative Foundry paths as used by the proven console test.
   const url = new URL(path, new URL("./", window.location.href)).href;
   content.style.setProperty("background-image", `url(${JSON.stringify(url)})`, "important");
   content.style.setProperty("background-size", "cover", "important");
@@ -43,56 +43,64 @@ function applyBackground(app) {
   content.style.setProperty("background-repeat", "no-repeat", "important");
 }
 
-async function savePath(app, path) {
+async function saveBackground(app, path) {
   try {
-    if (!canChange(app.document)) throw new Error("Permission denied");
-    await app.document.setFlag(ID, FLAG, path);
+    if (!mayEdit(app.document)) return;
+    await app.document.setFlag(ID, "path", path);
     applyBackground(app);
-    ui.notifications.info(game.i18n.localize(path ? `${ID}.changed` : `${ID}.cleared`));
-  } catch (err) {
-    console.error(`${ID} | Could not update background`, err);
+    ui.notifications.info(game.i18n.localize(`${ID}.${path ? "changed" : "cleared"}`));
+  } catch (error) {
+    console.error(`${ID} | Failed to save background`, error);
     ui.notifications.error(game.i18n.localize(`${ID}.error`));
   }
 }
 
-function openPicker(app) {
-  if (!canChange(app.document)) return;
-  const Picker = foundry.applications.apps.FilePicker.implementation;
-  new Picker({
-    type: "image",
-    callback: (path) => { void savePath(app, path); }
-  }).render(true);
+function openImagePicker(app) {
+  try {
+    const Picker = foundry.applications.apps.FilePicker.implementation;
+    new Picker({
+      type: "image",
+      callback: (path) => { void saveBackground(app, path); }
+    }).render(true);
+  } catch (error) {
+    console.error(`${ID} | Failed to open image picker`, error);
+    ui.notifications.error(game.i18n.localize(`${ID}.error`));
+  }
 }
 
 function decorate(app) {
-  if (!supported(app)) return;
-  const header = app.element?.querySelector(".window-header");
-  applyBackground(app);
-  if (!header) return;
-  const existing = header.querySelector(`[data-${ID}]`);
-  if (!canChange(app.document)) {
-    existing?.remove();
-    return;
+  if (!isCharacterSheet(app)) return;
+  try {
+    applyBackground(app);
+    const header = app.element?.querySelector(".window-header");
+    if (!header) return;
+    const existing = header.querySelector(`[data-sheet-backgrounds-modern]`);
+    if (!mayEdit(app.document)) {
+      existing?.remove();
+      return;
+    }
+    if (existing) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "background-image-button";
+    button.dataset.sheetBackgroundsModern = "";
+    button.title = game.i18n.localize(`${ID}.button`);
+    button.setAttribute("aria-label", button.title);
+    const icon = document.createElement("i");
+    icon.className = "fas fa-image";
+    button.append(icon);
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (mayEdit(app.document)) openImagePicker(app);
+    });
+    button.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      void saveBackground(app, "");
+    });
+    header.append(button);
+  } catch (error) {
+    console.error(`${ID} | Could not decorate character sheet`, error);
   }
-  if (existing) return;
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "header-control icon";
-  button.setAttribute(`data-${ID}`, "");
-  button.title = game.i18n.localize(`${ID}.button`);
-  button.setAttribute("aria-label", button.title);
-  const icon = document.createElement("i");
-  icon.className = "fa-solid fa-image";
-  button.append(icon);
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    openPicker(app);
-  });
-  button.addEventListener("contextmenu", (event) => {
-    event.preventDefault();
-    void savePath(app, "");
-  });
-  header.append(button);
 }
 
 Hooks.once("init", () => {
@@ -108,13 +116,14 @@ Hooks.once("init", () => {
 });
 
 Hooks.on("renderApplicationV2", (app) => {
-  if (!supported(app)) return;
+  if (!isCharacterSheet(app)) return;
+  // The header may be replaced by an ApplicationV2 render.
   requestAnimationFrame(() => decorate(app));
 });
 
 Hooks.on("updateActor", (actor) => {
   for (const app of foundry.applications.instances.values()) {
-    if (supported(app) && app.document.id === actor.id) applyBackground(app);
+    if (isCharacterSheet(app) && app.document.id === actor.id) decorate(app);
   }
 });
 
