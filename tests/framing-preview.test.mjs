@@ -44,7 +44,7 @@ class Element {
 }
 globalThis.document = { createElement() { return new Element(); } };
 const { backgroundPathFor, getLayout, isSupportedSheet, syncBackground, decorate, openLayoutDialog } =
-  await import("../scripts/main-preview.mjs");
+  await import("../scripts/main-preview-v2.mjs");
 
 function fixture({ path = "assets/hero.webp", legacy, isOwner = true, isEditMode = true } = {}) {
   const actor = {
@@ -66,22 +66,23 @@ function fixture({ path = "assets/hero.webp", legacy, isOwner = true, isEditMode
 const btn = header => header.querySelector("[data-sheet-backgrounds-modern]");
 
 test("banner is the safe legacy-inspired default", () => {
-  assert.deepEqual(getLayout(fixture().actor), { mode: "banner", fit: "cover", x: 50, y: 0 });
+  assert.deepEqual(getLayout(fixture().actor), { mode: "banner", fit: "cover", x: 50, y: 0, darkness: 20 });
 });
 test("invalid configuration is normalized and percentages clamped", () => {
   const { actor } = fixture();
-  actor.flags["sheet-backgrounds-modern"].layout = { mode: "bad", fit: "contain", x: -20, y: 123 };
-  assert.deepEqual(getLayout(actor), { mode: "banner", fit: "contain", x: 0, y: 100 });
+  actor.flags["sheet-backgrounds-modern"].layout = { mode: "bad", fit: "contain", x: -20, y: 123, darkness: 950 };
+  assert.deepEqual(getLayout(actor), { mode: "banner", fit: "contain", x: 0, y: 100, darkness: 90 });
 });
 test("full mode adds only scoped classes and variables", () => {
   const { app, actor, root } = fixture();
-  actor.flags["sheet-backgrounds-modern"].layout = { mode: "full", fit: "contain", x: 75, y: 25 };
+  actor.flags["sheet-backgrounds-modern"].layout = { mode: "full", fit: "contain", x: 75, y: 25, darkness: 65 };
   root.style.setProperty("color", "purple");
   syncBackground(app);
   assert.equal(root.classList.contains("sbm-mode-full"), true);
   assert.equal(root.classList.contains("sbm-mode-banner"), false);
   assert.equal(root.style.getPropertyValue("--sbm-position-x"), "75%");
   assert.equal(root.style.getPropertyValue("--sbm-fit"), "contain");
+  assert.equal(root.style.getPropertyValue("--sbm-darkness"), "0.65");
   assert.equal(root.style.getPropertyValue("color"), "purple");
 });
 test("an explicit reset overrides legacy, without touching other styles", () => {
@@ -91,6 +92,7 @@ test("an explicit reset overrides legacy, without touching other styles", () => 
   syncBackground(app);
   assert.equal(root.classList.contains("sbm-custom-background"), false);
   assert.equal(root.style.getPropertyValue("color"), "purple");
+  assert.equal(root.style.getPropertyValue("--sbm-darkness"), "");
 });
 test("the button appears only on editable native character sheets", () => {
   const { app, header } = fixture();
@@ -106,10 +108,10 @@ test("the button appears only on editable native character sheets", () => {
 test("layout dialog preserves the image path and saves a separate actor flag", async () => {
   const { app, actor } = fixture();
   foundry.applications.api = { DialogV2: { async input() {
-    return { mode: "full", fit: "contain", x: "18", y: "60" };
+    return { mode: "full", fit: "contain", x: "18", y: "60", darkness: "75" };
   } } };
   await openLayoutDialog(app);
-  assert.deepEqual(actor.flags["sheet-backgrounds-modern"].layout, { mode: "full", fit: "contain", x: 18, y: 60 });
+  assert.deepEqual(actor.flags["sheet-backgrounds-modern"].layout, { mode: "full", fit: "contain", x: 18, y: 60, darkness: 75 });
   assert.equal(actor.flags["sheet-backgrounds-modern"].path, "assets/hero.webp");
 });
 test("shift-click opens the layout editor; normal click still opens FilePicker", async () => {
@@ -137,4 +139,30 @@ test("nonowners and restricted players cannot change the layout", async () => {
   assert.equal(btn(header), null);
   await openLayoutDialog(app);
   assert.equal(app.document.flags["sheet-backgrounds-modern"].layout, undefined);
+});
+
+test("0% darkness is preserved and missing darkness defaults safely to 20%", () => {
+  const { actor, app, root } = fixture();
+  actor.flags["sheet-backgrounds-modern"].layout = { mode: "full", darkness: 0 };
+  assert.equal(getLayout(actor).darkness, 0);
+  syncBackground(app);
+  assert.equal(root.style.getPropertyValue("--sbm-darkness"), "0");
+  delete actor.flags["sheet-backgrounds-modern"].layout.darkness;
+  assert.equal(getLayout(actor).darkness, 20);
+});
+test("only our CSS properties are changed when swapping full/banner modes", () => {
+  const { actor, app, root } = fixture();
+  root.style.setProperty("--third-party-theme", "preserve");
+  actor.flags["sheet-backgrounds-modern"].layout = { mode: "full", darkness: 40 };
+  syncBackground(app);
+  assert.equal(root.style.getPropertyValue("--sbm-darkness"), "0.4");
+  actor.flags["sheet-backgrounds-modern"].layout.mode = "banner";
+  syncBackground(app);
+  assert.equal(root.classList.contains("sbm-mode-banner"), true);
+  assert.equal(root.classList.contains("sbm-mode-full"), false);
+  assert.equal(root.style.getPropertyValue("--third-party-theme"), "preserve");
+  actor.flags["sheet-backgrounds-modern"].path = "";
+  syncBackground(app);
+  assert.equal(root.style.getPropertyValue("--sbm-darkness"), "");
+  assert.equal(root.style.getPropertyValue("--third-party-theme"), "preserve");
 });
