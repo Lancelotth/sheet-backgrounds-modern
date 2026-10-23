@@ -1,12 +1,27 @@
 {
   "sheet-backgrounds-modern": {
-    "button": "Change background (right-click to reset)",
+    "button": "Change image · Shift-click: layout · Right-click: reset",
     "changed": "Character sheet background updated.",
     "cleared": "Character sheet background reset.",
     "error": "Could not save character sheet background.",
     "allowPlayers": {
       "name": "Allow players to change backgrounds",
       "hint": "Owners may select or reset a background image. The GM may always do so."
+    },
+    "layout": {
+      "title": "Character Background Layout",
+      "hint": "Changes are previewed live on the character sheet. Save to keep them, or close to revert.",
+      "mode": "Background style",
+      "banner": "Banner (original fade)",
+      "full": "Full sheet wallpaper",
+      "fit": "Image fitting",
+      "cover": "Cover (fills area, may crop)",
+      "contain": "Contain (shows entire image)",
+      "x": "Horizontal focus",
+      "y": "Vertical focus",
+      "save": "Save layout",
+      "saved": "Character background layout updated.",
+      "darkness": "Background darkness"
     }
   }
 }

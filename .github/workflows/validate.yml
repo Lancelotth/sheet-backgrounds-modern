@@ -1,0 +1,37 @@
+name: Validate Foundry module
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate entrypoints and localization
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, re
+          m = json.loads(pathlib.Path("module.json").read_text())
+          assert m["id"] == "sheet-backgrounds-modern"
+          assert re.fullmatch(r"\d+\.\d+\.\d+", m["version"]), "Stable release version must be X.Y.Z"
+          assert m["manifest"] == "https://github.com/Lancelotth/sheet-backgrounds-modern/releases/latest/download/module.json"
+          assert m["download"].endswith("/v" + m["version"] + "/sheet-backgrounds-modern.zip")
+          for p in m.get("esmodules", []) + m.get("styles", []) + [x["path"] for x in m.get("languages", [])]:
+              assert pathlib.Path(p).is_file(), "Missing manifest asset: " + p
+          for language in m.get("languages", []):
+              json.loads(pathlib.Path(language["path"]).read_text())
+          PY
+      - name: JavaScript syntax and regression suite
+        run: |
+          for file in scripts/*.mjs scripts/*.js; do
+            [ -f "$file" ] || continue
+            node --check "$file"
+          done
+          node --test tests/*.test.mjs
