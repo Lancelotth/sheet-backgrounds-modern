@@ -44,7 +44,7 @@ class Element {
 }
 globalThis.document = { createElement() { return new Element(); } };
 const { backgroundPathFor, getLayout, isSupportedSheet, syncBackground, decorate, openLayoutDialog } =
-  await import("../scripts/main-preview-v2.mjs");
+  await import("../scripts/main-preview-v3.mjs");
 
 function fixture({ path = "assets/hero.webp", legacy, isOwner = true, isEditMode = true } = {}) {
   const actor = {
@@ -165,4 +165,42 @@ test("only our CSS properties are changed when swapping full/banner modes", () =
   syncBackground(app);
   assert.equal(root.style.getPropertyValue("--sbm-darkness"), "");
   assert.equal(root.style.getPropertyValue("--third-party-theme"), "preserve");
+});
+
+test("darkness slider previews instantly, without saving flags, and Cancel reverts", async () => {
+  const { app, actor, root } = fixture();
+  const controls = new Map();
+  for (const [key, value] of Object.entries({ mode: "full", fit: "cover", x: "50", y: "0", darkness: "20" })) {
+    controls.set("#sbm-" + key, { value, listeners: new Map(), addEventListener(type, callback) { this.listeners.set(type, callback); } });
+  }
+  for (const key of ["x", "y", "darkness"]) {
+    controls.set('output[for="sbm-' + key + '"]', { textContent: "" });
+  }
+  const form = { querySelector: selector => controls.get(selector) ?? null };
+  let previewed = false;
+  foundry.applications.api = { DialogV2: { async input(options) {
+    options.render(null, { element: { querySelector: selector => selector === "form" ? form : null } });
+    controls.get("#sbm-darkness").value = "80";
+    controls.get("#sbm-darkness").listeners.get("input")();
+    assert.equal(root.style.getPropertyValue("--sbm-darkness"), "0.8");
+    assert.equal(controls.get('output[for="sbm-darkness"]').textContent, "80%");
+    assert.equal(actor.flags["sheet-backgrounds-modern"].layout, undefined);
+    previewed = true;
+    return null;
+  } } };
+  await openLayoutDialog(app);
+  assert.equal(previewed, true);
+  assert.equal(root.style.getPropertyValue("--sbm-darkness"), "0.2");
+  assert.equal(root.classList.contains("sbm-mode-banner"), true);
+});
+test("saving the darkness slider persists independently and survives reload", async () => {
+  const { app, actor, root } = fixture();
+  foundry.applications.api = { DialogV2: { async input() {
+    return { mode: "full", fit: "cover", x: "50", y: "0", darkness: "90" };
+  } } };
+  await openLayoutDialog(app);
+  assert.equal(actor.flags["sheet-backgrounds-modern"].layout.darkness, 90);
+  assert.equal(root.style.getPropertyValue("--sbm-darkness"), "0.9");
+  syncBackground(app);
+  assert.equal(root.style.getPropertyValue("--sbm-darkness"), "0.9");
 });
