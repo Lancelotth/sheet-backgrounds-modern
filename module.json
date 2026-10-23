@@ -1,8 +1,8 @@
 {
   "id": "sheet-backgrounds-modern",
   "title": "Sheet Backgrounds Modern (D&D 5e)",
-  "description": "Preview build: adjustable banner and full-sheet background framing for modern D&D 5e.",
-  "version": "0.1.6-preview.1",
+  "description": "Preview build: configurable banner/full-sheet framing and image-only darkness.",
+  "version": "0.1.6-preview.2",
   "authors": [
     {
       "name": "Lancelotth",
@@ -26,7 +26,7 @@
     ]
   },
   "esmodules": [
-    "scripts/main-preview.mjs"
+    "scripts/main-preview-v2.mjs"
   ],
   "languages": [
     {
@@ -36,8 +36,8 @@
     }
   ],
   "url": "https://github.com/Lancelotth/sheet-backgrounds-modern",
-  "manifest": "https://github.com/Lancelotth/sheet-backgrounds-modern/releases/download/preview-background-framing-1/module.json",
-  "download": "https://github.com/Lancelotth/sheet-backgrounds-modern/releases/download/preview-background-framing-1/sheet-backgrounds-modern.zip",
+  "manifest": "https://github.com/Lancelotth/sheet-backgrounds-modern/releases/download/preview-background-framing-2/module.json",
+  "download": "https://github.com/Lancelotth/sheet-backgrounds-modern/releases/download/preview-background-framing-2/sheet-backgrounds-modern.zip",
   "styles": [
     "styles/sheet-backgrounds-modern.css"
   ]
