@@ -139,6 +139,9 @@ test("nonowners and restricted players cannot change the layout", async () => {
   assert.equal(btn(header), null);
   await openLayoutDialog(app);
   assert.equal(app.document.flags["sheet-backgrounds-modern"].layout, undefined);
+  // Restore shared Foundry user mocks for subsequent tests.
+  game.user.isGM = true;
+  playersAllowed = true;
 });
 
 test("0% darkness is preserved and missing darkness defaults safely to 20%", () => {
