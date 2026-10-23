@@ -45,7 +45,7 @@ export function getLayout(actor) {
     const n = Number(value);
     return Number.isFinite(n) ? Math.round(Math.max(0, Math.min(100, n))) : fallback;
   };
-  return { mode, fit, x: bounded(saved?.x, 50), y: bounded(saved?.y, 0), darkness: bounded(saved?.darkness, 20) > 90 ? 90 : bounded(saved?.darkness, 20) };
+  return { mode, fit, x: bounded(saved?.x, 50), y: bounded(saved?.y, 0), darkness: Math.min(90, bounded(saved?.darkness, 20)) };
 }
 
 function clearCustomStyles(root) {
