@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Existing or new release tag (e.g. v0.1.0)'
+        description: 'Existing release tag to (re)package'
         required: true
-        default: 'v0.1.0'
+        default: 'v0.1.5'
         type: string
 
 permissions:
@@ -19,34 +19,68 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Validate and package
+      - name: Checkout the exact release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref }}
+
+      - name: Validate JavaScript and run regression tests
+        run: |
+          python3 - <<'PYTEST'
+          import json, pathlib
+          manifest = json.loads(pathlib.Path('module.json').read_text())
+          for filename in manifest.get('esmodules', []):
+              print('ES module:', filename)
+              assert pathlib.Path(filename).is_file()
+          PYTEST
+          for file in scripts/*.{mjs,js}; do
+            [ -f "$file" ] || continue
+            node --check "$file"
+          done
+          node --test tests/*.test.mjs
+
+      - name: Validate manifest and package selected files
         env:
           REPOSITORY: ${{ github.repository }}
           TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
         run: |
           python3 - <<'PY'
           import json, os, pathlib, re, zipfile
+
           repo, tag = os.environ['REPOSITORY'], os.environ['TAG']
           if not re.fullmatch(r'v\d+\.\d+\.\d+', tag):
-              raise SystemExit('Tag must be vMAJOR.MINOR.PATCH')
+              raise SystemExit('Invalid tag; expected vMAJOR.MINOR.PATCH')
           name = 'sheet-backgrounds-modern'
-          m = json.loads(pathlib.Path('module.json').read_text())
-          m['version'] = tag[1:]
-          m['url'] = f'https://github.com/{repo}'
-          m['manifest'] = f'https://github.com/{repo}/releases/latest/download/module.json'
-          m['download'] = f'https://github.com/{repo}/releases/download/{tag}/{name}.zip'
+          manifest = json.loads(pathlib.Path('module.json').read_text())
+          if manifest['id'] != name or manifest['version'] != tag[1:]:
+              raise SystemExit('Manifest module ID or version does not match release tag')
+
+          paths = ['module.json']
+          paths += manifest.get('esmodules', [])
+          paths += manifest.get('styles', [])
+          paths += [x['path'] for x in manifest.get('languages', [])]
+          if len(set(paths)) != len(paths):
+              raise SystemExit('Duplicate manifest asset paths')
+          for path in paths:
+              file = pathlib.Path(path)
+              if file.is_absolute() or '..' in file.parts or not file.is_file():
+                  raise SystemExit(f'Missing or invalid release asset: {path}')
+          for lang in manifest.get('languages', []):
+              json.loads(pathlib.Path(lang['path']).read_text())
+
+          manifest['url'] = f'https://github.com/{repo}'
+          manifest['manifest'] = f'https://github.com/{repo}/releases/latest/download/module.json'
+          manifest['download'] = f'https://github.com/{repo}/releases/download/{tag}/{name}.zip'
           out = pathlib.Path('dist')
           out.mkdir(exist_ok=True)
-          (out / 'module.json').write_text(json.dumps(m, ensure_ascii=False, indent=2)+'\n')
-          with zipfile.ZipFile(out / f'{name}.zip', 'w', zipfile.ZIP_DEFLATED) as z:
-              z.write(out / 'module.json', 'module.json')
-              for f in pathlib.Path('scripts').rglob('*'):
-                  if f.is_file(): z.write(f, f.as_posix())
-              for f in pathlib.Path('lang').rglob('*'):
-                  if f.is_file(): z.write(f, f.as_posix())
+          (out / 'module.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
+          with zipfile.ZipFile(out / f'{name}.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+              archive.write(out / 'module.json', 'module.json')
+              for path in paths[1:]:
+                  archive.write(path, path)
           PY
-      - name: Publish release assets
+
+      - name: Attach validated assets to release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
@@ -54,5 +88,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/module.json dist/sheet-backgrounds-modern.zip --clobber
           else
-            gh release create "$TAG" dist/module.json dist/sheet-backgrounds-modern.zip --title "$TAG" --generate-notes
+            gh release create "$TAG" dist/module.json dist/sheet-backgrounds-modern.zip --title "Sheet Backgrounds Modern $TAG" --generate-notes
           fi
