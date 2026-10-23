@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 
-const css = readFileSync(new URL("../styles/sheet-backgrounds-modern.css", import.meta.url), "utf8");
+const css = readFileSync(new URL("../styles/sheet-backgrounds-modern-preview-v3.css", import.meta.url), "utf8");
 
 test("the darkening gradient is layered over the image in both modes", () => {
   const matches = css.match(/background-image:\s*linear-gradient\([\s\S]*?var\(--sbm-custom-background-url\)/g) ?? [];
