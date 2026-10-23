@@ -44,7 +44,7 @@ class Element {
 }
 globalThis.document = { createElement() { return new Element(); } };
 const { backgroundPathFor, getLayout, isSupportedSheet, syncBackground, decorate, openLayoutDialog } =
-  await import("../scripts/main-preview-v3.mjs");
+  await import("../scripts/main-v016.mjs");
 
 function fixture({ path = "assets/hero.webp", legacy, isOwner = true, isEditMode = true } = {}) {
   const actor = {
