@@ -10,7 +10,7 @@
     },
     "layout": {
       "title": "Character Background Layout",
-      "hint": "Adjust your image only. Darkness does not dim sheet text, portraits, or controls.",
+      "hint": "Changes are previewed live on the character sheet. Save to keep them, or close to revert.",
       "mode": "Background style",
       "banner": "Banner (original fade)",
       "full": "Full sheet wallpaper",
