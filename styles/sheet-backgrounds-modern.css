@@ -1,0 +1,27 @@
+/*
+ * Scoped to the native D&D 5e character sheet, and enabled only if an actor has
+ * a custom background. No global selectors, core styles, or third-party flags.
+ * Removing sbm-custom-background restores the theme's unmodified defaults.
+ */
+.dnd5e2.sheet.actor.character.sbm-custom-background {
+  --dnd5e-character-background-content: none;
+  --dnd5e-character-header-image: none;
+  --dnd5e-character-body-image: none;
+}
+
+.dnd5e2.sheet.actor.character.sbm-custom-background .window-content {
+  background-image: var(--sbm-custom-background-url);
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* The image above is the only wallpaper while this module is active. */
+.dnd5e2.sheet.actor.character.sbm-custom-background .window-content::before {
+  content: none;
+}
+
+.dnd5e2.sheet.actor.character.sbm-custom-background .sheet-header,
+.dnd5e2.sheet.actor.character.sbm-custom-background .sheet-body {
+  background-image: none;
+}
