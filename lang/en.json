@@ -10,7 +10,7 @@
     },
     "layout": {
       "title": "Character Background Layout",
-      "hint": "Choose how the artwork fits this character sheet. Banner uses the original faded header style.",
+      "hint": "Adjust your image only. Darkness does not dim sheet text, portraits, or controls.",
       "mode": "Background style",
       "banner": "Banner (original fade)",
       "full": "Full sheet wallpaper",
@@ -20,7 +20,8 @@
       "x": "Horizontal focus",
       "y": "Vertical focus",
       "save": "Save layout",
-      "saved": "Character background layout updated."
+      "saved": "Character background layout updated.",
+      "darkness": "Background darkness"
     }
   }
 }
