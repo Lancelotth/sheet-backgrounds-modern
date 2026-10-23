@@ -1,0 +1,51 @@
+/*
+ * Sheet Backgrounds Modern - framing & image-only darkness v0.1.6 (cache-busted stylesheet).
+ * Entirely scoped to stock D&D 5e character sheets with a selected image.
+ * Darkness is painted in the BACKGROUND layer and never reduces the opacity
+ * of sheet contents: labels, portraits, controls, and buttons remain crisp.
+ * Versioned asset prevents clients reusing a stale stylesheet after a module upgrade.
+ */
+.dnd5e2.sheet.actor.character.sbm-custom-background.sbm-mode-banner {
+  --dnd5e-character-background-content: "";
+  --dnd5e-character-background-image: var(--sbm-custom-background-url);
+}
+
+/*
+ * Reuse the native 300px, fading D&D 5e header pseudo-element.
+ * The first layer is the darkness gradient; the second is the selected image.
+ * Preserve the stock pseudo-element's mask and opacity.
+ */
+.dnd5e2.sheet.actor.character.sbm-custom-background.sbm-mode-banner:not(.minimized) .window-content::before {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, var(--sbm-darkness, 0.20)), rgba(0, 0, 0, var(--sbm-darkness, 0.20))),
+    var(--sbm-custom-background-url);
+  background-position: center, var(--sbm-position-x, 50%) var(--sbm-position-y, 0%);
+  background-size: 100% 100%, var(--sbm-fit, cover);
+  background-repeat: no-repeat, no-repeat;
+}
+
+/* Full mode replaces the original image layers, but not the actual UI panels. */
+.dnd5e2.sheet.actor.character.sbm-custom-background.sbm-mode-full {
+  --dnd5e-character-background-content: none;
+  --dnd5e-character-header-image: none;
+  --dnd5e-character-body-image: none;
+}
+
+.dnd5e2.sheet.actor.character.sbm-custom-background.sbm-mode-full .window-content {
+  background-color: #111a19;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, var(--sbm-darkness, 0.20)), rgba(0, 0, 0, var(--sbm-darkness, 0.20))),
+    var(--sbm-custom-background-url);
+  background-position: center, var(--sbm-position-x, 50%) var(--sbm-position-y, 0%);
+  background-size: 100% 100%, var(--sbm-fit, cover);
+  background-repeat: no-repeat, no-repeat;
+}
+
+.dnd5e2.sheet.actor.character.sbm-custom-background.sbm-mode-full .window-content::before {
+  content: none;
+}
+
+.dnd5e2.sheet.actor.character.sbm-custom-background.sbm-mode-full .sheet-header,
+.dnd5e2.sheet.actor.character.sbm-custom-background.sbm-mode-full .sheet-body {
+  background-image: none;
+}
