@@ -1,8 +1,8 @@
 {
   "id": "sheet-backgrounds-modern",
   "title": "Sheet Backgrounds Modern (D&D 5e)",
-  "description": "Custom background images for modern D&D 5e character sheets in Foundry VTT v13.",
-  "version": "0.1.4",
+  "description": "Per-character background images for modern D&D 5e character sheets in Foundry VTT v13.",
+  "version": "0.1.5",
   "authors": [
     {
       "name": "Lancelotth",
@@ -19,13 +19,14 @@
         "id": "dnd5e",
         "type": "system",
         "compatibility": {
-          "minimum": "5.3.3"
+          "minimum": "5.3.3",
+          "verified": "5.3.3"
         }
       }
     ]
   },
   "esmodules": [
-    "scripts/main-v014.js"
+    "scripts/main-v015.mjs"
   ],
   "languages": [
     {
@@ -36,5 +37,8 @@
   ],
   "url": "https://github.com/Lancelotth/sheet-backgrounds-modern",
   "manifest": "https://github.com/Lancelotth/sheet-backgrounds-modern/releases/latest/download/module.json",
-  "download": "https://github.com/Lancelotth/sheet-backgrounds-modern/releases/download/v0.1.4/sheet-backgrounds-modern.zip"
+  "download": "https://github.com/Lancelotth/sheet-backgrounds-modern/releases/download/v0.1.5/sheet-backgrounds-modern.zip",
+  "styles": [
+    "styles/sheet-backgrounds-modern.css"
+  ]
 }
